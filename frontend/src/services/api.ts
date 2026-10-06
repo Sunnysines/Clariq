@@ -46,10 +46,13 @@ export function getHealth(): Promise<HealthResponse> {
 }
 
 /* ─── Analysis ─── */
-export function startAnalysis(req: AnalyzeRequest): Promise<AnalyzeStartResponse> {
+export function startAnalysis(questionOrReq: string | AnalyzeRequest): Promise<AnalyzeStartResponse> {
+  const payload: AnalyzeRequest =
+    typeof questionOrReq === 'string' ? { question: questionOrReq } : questionOrReq;
+
   return request<AnalyzeStartResponse>('/api/analyze', {
     method: 'POST',
-    body: JSON.stringify(req),
+    body: JSON.stringify(payload),
   });
 }
 
