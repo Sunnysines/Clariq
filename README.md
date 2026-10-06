@@ -60,8 +60,24 @@ FastAPI (Python, Pydantic, SQLAlchemy, SQLite)
 Decision Intelligence Pipeline
    │
    ▼
-SerpApi (Google Search, Jobs, News, Trends, Local)
+SearchOrchestrator
+   ├── GoogleSearchService (google)
+   ├── GoogleJobsService   (google_jobs)
+   ├── GoogleNewsService   (google_news)
+   ├── GoogleTrendsService (google_trends)
+   └── GoogleLocalService  (google_maps)
 ```
+
+### 🔍 SerpApi Multi-Engine Integration Details
+
+- **`SerpApiClient`**: Production-grade async HTTP client built on `httpx` with timeout management (`REQUEST_TIMEOUT=15`), automatic exponential retry (`MAX_RETRIES=2`), response payload validation, and custom exception hierarchies (`SerpApiAuthError`, `SerpApiTimeoutError`, `SerpApiRateLimitError`).
+- **`SearchOrchestrator`**: Dispatches concurrent queries across multiple SerpApi engines. Implements **graceful partial-failure isolation**: if a single engine (e.g., News) encounters a rate limit or timeout, available engines (e.g., Jobs and Search) complete unimpeded and their evidence is preserved.
+- **Typed Engine Results**:
+  - `GoogleSearchService`: Organic results, snippets, citation links, index positions.
+  - `GoogleJobsService`: Job titles, employers, locations, detection extensions, schedule types, application links.
+  - `GoogleNewsService`: News headlines, publishers, timestamps, snippets.
+  - `GoogleTrendsService`: Time-series interest data, interest-over-time trends.
+  - `GoogleLocalService`: Local ecosystem hubs, ratings, place presence.
 
 > **Security Rule:** Neither SerpApi keys nor LLM API keys are ever exposed to the client application. All queries are handled server-side.
 
