@@ -17,7 +17,7 @@ import ScoreCard from '../components/ScoreCard';
 import SignalCard from '../components/SignalCard';
 import ContradictionCard from '../components/ContradictionCard';
 import ActionLayer from '../components/ActionLayer';
-import WhyExplanationModal, { type WhyContribution } from '../components/WhyExplanationModal';
+import WhyExplanationModal from '../components/WhyExplanationModal';
 import type { SignalItem } from '../types';
 
 export default function DashboardPage() {
@@ -66,69 +66,126 @@ export default function DashboardPage() {
     );
   }
 
+  const mode = analysis?.mode || analysis?.intent || 'career';
   const resultData = analysis?.result_data as any;
   const recommendation = resultData?.recommendation;
-  const cities = resultData?.cities || [];
-  const topCityObj = cities[0];
 
-  const topEntity = topCityObj?.city || recommendation?.top_city || 'Bengaluru';
-  const overallScore = topCityObj?.overall_score || recommendation?.score || 89;
-  const confidenceScore = topCityObj?.confidence || recommendation?.confidence || 90;
-  const confidenceLevel = topCityObj?.confidence_level || recommendation?.confidence_level || 'HIGH';
+  // Extract entities & top entity dynamically based on mode
+  let topEntity = 'Bengaluru';
+  let overallScore = 89;
+  let confidenceScore = 90;
+  let confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'HIGH';
+  let signals: SignalItem[] = [];
+  let contradictions: any[] = [];
+  let scoreCards: Array<{ title: string; score: number; weightLabel: string }> = [];
+  let comparisonChartData: Array<{ name: string; Score: number; Metric2: number; Metric3: number; label2: string; label3: string }> = [];
 
-  const catScores = topCityObj?.category_scores || {
-    job_opportunity: 91,
-    market_demand: 88,
-    recent_activity: 84,
-    company_presence: 92,
-    evidence_confidence: 90,
-  };
+  if (mode === 'company') {
+    const companies = resultData?.companies || [];
+    const topCompObj = companies[0];
+    topEntity = topCompObj?.company || recommendation?.top_company || 'TCS';
+    overallScore = topCompObj?.overall_score || recommendation?.score || 84;
+    confidenceScore = topCompObj?.confidence || recommendation?.confidence || 86;
+    confidenceLevel = (topCompObj?.confidence_level || recommendation?.confidence_level || 'HIGH') as any;
+    signals = topCompObj?.signals || [];
+    contradictions = topCompObj?.contradictions || [];
 
-  const signals: SignalItem[] = topCityObj?.signals || [];
-  const contradictions = topCityObj?.contradictions || [];
+    scoreCards = [
+      { title: 'Hiring Signals', score: topCompObj?.hiring_signals_count ? Math.min(95, 60 + topCompObj.hiring_signals_count * 10) : 85, weightLabel: '35% weight' },
+      { title: 'Growth Signals', score: topCompObj?.growth_signals_count ? Math.min(95, 60 + topCompObj.growth_signals_count * 10) : 82, weightLabel: '25% weight' },
+      { title: 'Ecosystem Presence', score: 88, weightLabel: '20% weight' },
+      { title: 'Market Sentiment', score: topCompObj?.risk_signals_count ? Math.max(50, 85 - topCompObj.risk_signals_count * 15) : 84, weightLabel: '10% weight' },
+      { title: 'Evidence Confidence', score: Math.round(confidenceScore), weightLabel: '10% weight' },
+    ];
 
-  // Default explainable contributions if backend returned empty
-  const rawContributions: WhyContribution[] = resultData?.explanation?.contributions || [
-    {
-      label: 'Dense volume of verified active AI job listings',
-      score_contribution: 18,
-      evidence_count: 143,
-      direction: 'positive',
-    },
-    {
-      label: 'Extensive technology & enterprise hiring presence',
-      score_contribution: 15,
-      evidence_count: 27,
-      direction: 'positive',
-    },
-    {
-      label: 'Sustained Google Trends search volume index',
-      score_contribution: 12,
-      evidence_count: 1,
-      direction: 'positive',
-    },
-    {
-      label: 'Heightened talent competition in selective hubs',
-      score_contribution: -6,
-      evidence_count: 5,
-      direction: 'negative',
-    },
-  ];
+    comparisonChartData = companies.length > 0
+      ? companies.map((c: any) => ({
+          name: c.company,
+          Score: Math.round(c.overall_score),
+          Metric2: Math.min(100, (c.hiring_signals_count || 1) * 15 + 50),
+          Metric3: Math.round(c.confidence),
+          label2: 'Hiring',
+          label3: 'Confidence',
+        }))
+      : [
+          { name: 'TCS', Score: 84, Metric2: 85, Metric3: 88, label2: 'Hiring', label3: 'Confidence' },
+          { name: 'Infosys', Score: 81, Metric2: 80, Metric3: 85, label2: 'Hiring', label3: 'Confidence' },
+          { name: 'Wipro', Score: 73, Metric2: 70, Metric3: 78, label2: 'Hiring', label3: 'Confidence' },
+        ];
+  } else if (mode === 'technology') {
+    const technologies = resultData?.technologies || [];
+    const topTechObj = technologies[0];
+    topEntity = topTechObj?.technology || recommendation?.top_technology || 'AI Agents';
+    overallScore = topTechObj?.overall_score || recommendation?.score || 93;
+    confidenceScore = topTechObj?.confidence || recommendation?.confidence || 92;
+    confidenceLevel = (topTechObj?.confidence_level || recommendation?.confidence_level || 'HIGH') as any;
+    signals = topTechObj?.signals || [];
+    contradictions = topTechObj?.contradictions || [];
 
-  // Prepare chart data comparing candidate cities
-  const comparisonChartData = cities.length > 0
-    ? cities.map((c: any) => ({
-        name: c.city,
-        Score: c.overall_score,
-        Jobs: c.category_scores?.job_opportunity || 0,
-        Demand: c.category_scores?.market_demand || 0,
-      }))
-    : [
-        { name: 'Bengaluru', Score: 89, Jobs: 92, Demand: 88 },
-        { name: 'Hyderabad', Score: 82, Jobs: 83, Demand: 81 },
-        { name: 'Pune', Score: 74, Jobs: 72, Demand: 75 },
-        { name: 'Chennai', Score: 69, Jobs: 66, Demand: 70 },
-      ];
+    scoreCards = [
+      { title: 'Job Demand', score: 94, weightLabel: '35% weight' },
+      { title: 'Search Momentum', score: 90, weightLabel: '25% weight' },
+      { title: 'Enterprise Adoption', score: 88, weightLabel: '20% weight' },
+      { title: 'Ecosystem Stability', score: 82, weightLabel: '10% weight' },
+      { title: 'Evidence Confidence', score: Math.round(confidenceScore), weightLabel: '10% weight' },
+    ];
+
+    comparisonChartData = technologies.length > 0
+      ? technologies.map((t: any) => ({
+          name: t.technology,
+          Score: Math.round(t.overall_score),
+          Metric2: Math.round(t.confidence),
+          Metric3: Math.min(100, (t.evidence_count || 1) * 4 + 40),
+          label2: 'Confidence',
+          label3: 'Evidence Density',
+        }))
+      : [
+          { name: 'AI Agents', Score: 93, Metric2: 92, Metric3: 95, label2: 'Confidence', label3: 'Evidence Density' },
+          { name: 'Traditional LLMs', Score: 79, Metric2: 85, Metric3: 80, label2: 'Confidence', label3: 'Evidence Density' },
+        ];
+  } else {
+    // Career mode default
+    const cities = resultData?.cities || [];
+    const topCityObj = cities[0];
+    topEntity = topCityObj?.city || recommendation?.top_city || 'Bengaluru';
+    overallScore = topCityObj?.overall_score || recommendation?.score || 89;
+    confidenceScore = topCityObj?.confidence || recommendation?.confidence || 90;
+    confidenceLevel = (topCityObj?.confidence_level || recommendation?.confidence_level || 'HIGH') as any;
+    signals = topCityObj?.signals || [];
+    contradictions = topCityObj?.contradictions || [];
+
+    const catScores = topCityObj?.category_scores || {
+      job_opportunity: 91,
+      market_demand: 88,
+      recent_activity: 84,
+      company_presence: 92,
+      evidence_confidence: 90,
+    };
+
+    scoreCards = [
+      { title: 'Job Opportunity', score: catScores.job_opportunity, weightLabel: '35% weight' },
+      { title: 'Market Demand', score: catScores.market_demand, weightLabel: '20% weight' },
+      { title: 'Recent Activity', score: catScores.recent_activity, weightLabel: '20% weight' },
+      { title: 'Company Presence', score: catScores.company_presence, weightLabel: '15% weight' },
+      { title: 'Evidence Confidence', score: catScores.evidence_confidence, weightLabel: '10% weight' },
+    ];
+
+    comparisonChartData = cities.length > 0
+      ? cities.map((c: any) => ({
+          name: c.city,
+          Score: Math.round(c.overall_score),
+          Metric2: Math.round(c.category_scores?.job_opportunity || 0),
+          Metric3: Math.round(c.category_scores?.market_demand || 0),
+          label2: 'Jobs',
+          label3: 'Demand',
+        }))
+      : [
+          { name: 'Bengaluru', Score: 89, Metric2: 92, Metric3: 88, label2: 'Jobs', label3: 'Demand' },
+          { name: 'Hyderabad', Score: 82, Metric2: 83, Metric3: 81, label2: 'Jobs', label3: 'Demand' },
+          { name: 'Pune', Score: 74, Metric2: 72, Metric3: 75, label2: 'Jobs', label3: 'Demand' },
+          { name: 'Chennai', Score: 69, Metric2: 66, Metric3: 70, label2: 'Jobs', label3: 'Demand' },
+        ];
+  }
 
   const handleViewEvidenceForIds = (evidenceIds: string[]) => {
     navigate(`/evidence?id=${id}&selected=${evidenceIds.slice(0, 3).join(',')}`);
@@ -221,36 +278,15 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <ScoreCard
-            title="Job Opportunity"
-            score={catScores.job_opportunity}
-            weightLabel="35% weight"
-            onWhyClick={() => setIsWhyModalOpen(true)}
-          />
-          <ScoreCard
-            title="Market Demand"
-            score={catScores.market_demand}
-            weightLabel="20% weight"
-            onWhyClick={() => setIsWhyModalOpen(true)}
-          />
-          <ScoreCard
-            title="Recent Activity"
-            score={catScores.recent_activity}
-            weightLabel="20% weight"
-            onWhyClick={() => setIsWhyModalOpen(true)}
-          />
-          <ScoreCard
-            title="Company Presence"
-            score={catScores.company_presence}
-            weightLabel="15% weight"
-            onWhyClick={() => setIsWhyModalOpen(true)}
-          />
-          <ScoreCard
-            title="Evidence Confidence"
-            score={catScores.evidence_confidence}
-            weightLabel="10% weight"
-            onWhyClick={() => setIsWhyModalOpen(true)}
-          />
+          {scoreCards.map((sc) => (
+            <ScoreCard
+              key={sc.title}
+              title={sc.title}
+              score={sc.score}
+              weightLabel={sc.weightLabel}
+              onWhyClick={() => setIsWhyModalOpen(true)}
+            />
+          ))}
         </div>
       </div>
 
@@ -260,7 +296,7 @@ export default function DashboardPage() {
           Candidate Entity Benchmark
         </h3>
         <p className="text-xs text-text-secondary mb-6">
-          Comparing overall decision scores, job volume, and market demand indices across candidate cities
+          Comparing overall decision scores across candidate entities by key intelligence metrics
         </p>
 
         <div className="h-64 w-full">
@@ -277,9 +313,9 @@ export default function DashboardPage() {
                   fontSize: 12,
                 }}
               />
-              <Bar dataKey="Score" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Jobs" fill="#22c55e" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Demand" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Score" fill="#6366f1" radius={[4, 4, 0, 0]} name="Overall Score" />
+              <Bar dataKey="Metric2" fill="#22c55e" radius={[4, 4, 0, 0]} name={comparisonChartData[0]?.label2 || 'Metric 2'} />
+              <Bar dataKey="Metric3" fill="#f59e0b" radius={[4, 4, 0, 0]} name={comparisonChartData[0]?.label3 || 'Metric 3'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -350,7 +386,12 @@ export default function DashboardPage() {
         onClose={() => setIsWhyModalOpen(false)}
         entityName={topEntity}
         finalScore={overallScore}
-        contributions={rawContributions}
+        contributions={resultData?.explanation?.contributions || [
+          { label: 'Dense volume of verified active job listings', score_contribution: 18, evidence_count: 143, direction: 'positive' },
+          { label: 'Extensive technology & enterprise hiring presence', score_contribution: 15, evidence_count: 27, direction: 'positive' },
+          { label: 'Sustained Google Trends search volume index', score_contribution: 12, evidence_count: 1, direction: 'positive' },
+          { label: 'Heightened talent competition in selective hubs', score_contribution: -6, evidence_count: 5, direction: 'negative' },
+        ]}
         allEvidence={evidence?.items || []}
       />
     </div>

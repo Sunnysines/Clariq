@@ -6,6 +6,7 @@
 
 import type {
   Analysis,
+  AnalysisListResponse,
   AnalyzeRequest,
   AnalyzeStartResponse,
   CompareRequest,
@@ -54,6 +55,10 @@ export function startAnalysis(questionOrReq: string | AnalyzeRequest): Promise<A
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export function getAnalyses(limit: number = 20): Promise<AnalysisListResponse> {
+  return request<AnalysisListResponse>(`/api/analyze?limit=${limit}`);
 }
 
 export function getAnalysis(id: string): Promise<Analysis> {

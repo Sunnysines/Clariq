@@ -16,6 +16,8 @@ from app.schemas.schemas import (
     AnalyzeRequest,
     AnalyzeStartResponse,
     AnalysisStatus,
+    AnalysisListResponse,
+    AnalysisListItem,
     EvidenceListResponse,
     EvidenceItem,
     EntityListResponse,
@@ -198,6 +200,45 @@ async def start_analysis(
     background_tasks.add_task(run_analysis_pipeline, analysis.id, analysis.question)
 
     return AnalyzeStartResponse(analysis_id=analysis.id, status="processing")
+
+
+@router.get("", response_model=AnalysisListResponse)
+async def list_analyses(
+    limit: int = 20,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+) -> AnalysisListResponse:
+    """Retrieve history of recent decisions and analyses."""
+    stmt = (
+        select(Analysis)
+        .order_by(Analysis.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    res = await db.execute(stmt)
+    records = res.scalars().all()
+
+    # Get total count
+    count_stmt = select(Analysis)
+    all_res = await db.execute(count_stmt)
+    total_count = len(all_res.scalars().all())
+
+    items = [
+        AnalysisListItem(
+            id=a.id,
+            question=a.question,
+            intent=a.intent,
+            mode=a.mode,
+            status=a.status,
+            overall_score=a.overall_score,
+            confidence_level=a.confidence_level,
+            created_at=a.created_at,
+            completed_at=a.completed_at,
+        )
+        for a in records
+    ]
+
+    return AnalysisListResponse(total=total_count, items=items)
 
 
 @router.get("/{analysis_id}", response_model=AnalysisStatus)

@@ -49,6 +49,23 @@ export interface Analysis {
   completed_at: string | null;
 }
 
+export interface AnalysisListItem {
+  id: string;
+  question: string;
+  intent: string | null;
+  mode: string | null;
+  status: AnalysisStatus;
+  overall_score: number | null;
+  confidence_level: ConfidenceLevel | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface AnalysisListResponse {
+  total: number;
+  items: AnalysisListItem[];
+}
+
 export interface EvidenceItem {
   id: string;
   analysis_id: string;

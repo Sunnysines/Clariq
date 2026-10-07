@@ -40,6 +40,23 @@ class AnalysisStatus(BaseModel):
     completed_at: Optional[datetime] = None
 
 
+class AnalysisListItem(BaseModel):
+    id: str
+    question: str
+    intent: Optional[str] = None
+    mode: Optional[str] = None
+    status: str
+    overall_score: Optional[float] = None
+    confidence_level: Optional[str] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+
+
+class AnalysisListResponse(BaseModel):
+    total: int
+    items: list[AnalysisListItem]
+
+
 # ---------- Evidence ----------
 class EvidenceItem(BaseModel):
     id: str

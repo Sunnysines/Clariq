@@ -52,3 +52,17 @@ async def test_analysis_not_found():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/api/analyze/non-existent-id")
         assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_list_analyses():
+    await init_db()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/analyze")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "total" in data
+        assert "items" in data
+        assert isinstance(data["items"], list)
+
