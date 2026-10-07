@@ -56,6 +56,7 @@ class CompanyEngine:
     def __init__(self, orchestrator: Optional[SearchOrchestrator] = None):
         self.orchestrator = orchestrator or SearchOrchestrator()
         self.evidence_engine = EvidenceEngine()
+        self.last_evidence: list[NormalizedEvidence] = []
 
     def build_search_plan(self, question: str) -> list[EngineSearchInstruction]:
         """Construct multi-engine search instructions tailored for company hiring signals."""
@@ -121,6 +122,7 @@ class CompanyEngine:
             await on_stage_update("normalizing")
 
         all_evidence: list[NormalizedEvidence] = []
+        self.last_evidence = all_evidence
         for report in orch_res.reports:
             norm_items = self.evidence_engine.normalize_report(report, analysis_id=an_id)
             for item in norm_items:

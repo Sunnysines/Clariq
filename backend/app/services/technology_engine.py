@@ -53,6 +53,7 @@ class TechnologyEngine:
     def __init__(self, orchestrator: Optional[SearchOrchestrator] = None):
         self.orchestrator = orchestrator or SearchOrchestrator()
         self.evidence_engine = EvidenceEngine()
+        self.last_evidence: list[NormalizedEvidence] = []
 
     def extract_technology_topic(self, question: str) -> str:
         """Extract canonical technology subject from question or query."""
@@ -124,6 +125,7 @@ class TechnologyEngine:
             await on_stage_update("normalizing")
 
         all_evidence: list[NormalizedEvidence] = []
+        self.last_evidence = all_evidence
         for report in orch_res.reports:
             norm_items = self.evidence_engine.normalize_report(report, analysis_id=an_id)
             for item in norm_items:

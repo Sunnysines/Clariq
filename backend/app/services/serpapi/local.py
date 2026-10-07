@@ -43,8 +43,9 @@ class GoogleLocalService:
             "q": query,
             "type": "search",
         }
-        if location:
-            params["location"] = location
+        # NOTE: SerpApi google_maps requires `z`/`m` whenever `location` is sent.
+        # City context is carried in the query text instead (e.g. "tech parks in Pune").
+        _ = location
 
         raw = await self.client.execute(params)
         raw_local = raw.get("local_results", [])

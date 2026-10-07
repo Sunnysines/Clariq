@@ -16,6 +16,10 @@ from app.services.search_cache import get_cache, SearchCache
 
 logger = logging.getLogger("clariq.serpapi")
 
+# httpx logs the full request URL (including api_key) at INFO level – never allow that.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 
 class SerpApiError(Exception):
     """Base exception for SerpApi interactions."""

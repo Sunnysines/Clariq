@@ -82,6 +82,7 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                     analysis_id=analysis_id,
                     on_stage_update=update_stage,
                 )
+                used_engine = company_engine
                 top_item = result.companies[0] if result.companies else None
                 entities_list = result.companies
                 entity_type_label = "company"
@@ -93,6 +94,7 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                     analysis_id=analysis_id,
                     on_stage_update=update_stage,
                 )
+                used_engine = technology_engine
                 top_item = result.technologies[0] if result.technologies else None
                 entities_list = result.technologies
                 entity_type_label = "technology"
@@ -104,10 +106,33 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                     analysis_id=analysis_id,
                     on_stage_update=update_stage,
                 )
+                used_engine = career_engine
                 top_item = result.cities[0] if result.cities else None
                 entities_list = result.cities
                 entity_type_label = "city"
                 entity_name_key = "city"
+
+            # Store normalized evidence (needed by Evidence Explorer and trend charts)
+            import json as _json
+            for ev in used_engine.last_evidence:
+                db.add(Evidence(
+                    id=ev.id,
+                    analysis_id=analysis_id,
+                    title=ev.title,
+                    url=ev.url,
+                    source=ev.source,
+                    source_type=ev.source_type,
+                    snippet=ev.snippet,
+                    entity=ev.entity,
+                    location=ev.location,
+                    published_at=ev.published_at.replace(tzinfo=None) if ev.published_at else None,
+                    raw_engine=ev.raw_engine,
+                    raw_data=_json.loads(_json.dumps(ev.raw_data, default=str)) if ev.raw_data else None,
+                    relevance_score=ev.relevance_score,
+                    freshness_score=ev.freshness_score,
+                    reliability_score=ev.reliability_score,
+                    evidence_strength=ev.evidence_strength,
+                ))
 
             # Store Searches and Evidence records in DB
             for item in entities_list:
