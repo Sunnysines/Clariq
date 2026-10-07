@@ -25,6 +25,7 @@ from app.schemas.schemas import (
 )
 from app.services.career_engine import CareerEngine
 from app.services.company_engine import CompanyEngine
+from app.services.technology_engine import TechnologyEngine
 from app.services.serpapi.orchestrator import SearchOrchestrator
 
 logger = logging.getLogger("clariq.api.analyze")
@@ -83,6 +84,17 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                 entities_list = result.companies
                 entity_type_label = "company"
                 entity_name_key = "company"
+            elif intent == "technology":
+                technology_engine = TechnologyEngine()
+                result = await technology_engine.analyze(
+                    question=question,
+                    analysis_id=analysis_id,
+                    on_stage_update=update_stage,
+                )
+                top_item = result.technologies[0] if result.technologies else None
+                entities_list = result.technologies
+                entity_type_label = "technology"
+                entity_name_key = "technology"
             else:
                 career_engine = CareerEngine()
                 result = await career_engine.analyze(
