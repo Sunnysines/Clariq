@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.database.session import init_db
 from app.api.health import router as health_router
 from app.api.analyze import router as analyze_router
+from app.api.compare import router as compare_router
 
 settings = get_settings()
 
@@ -51,3 +52,4 @@ app.add_middleware(
 # --- Routes ---
 app.include_router(health_router, tags=["Health"])
 app.include_router(analyze_router)
+app.include_router(compare_router)
