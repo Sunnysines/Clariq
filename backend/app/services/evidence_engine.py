@@ -161,19 +161,46 @@ class EvidenceEngine:
         search_id: Optional[str] = None,
         geo: Optional[str] = None,
     ) -> NormalizedEvidence:
-        """Normalize a Google Trends result."""
+        """Normalize a Google Trends result as a SEARCH INTEREST signal (not hiring demand)."""
         avg_val = item.average_interest or 0
-        points_count = len(item.timeline_data)
+        points = item.timeline_data
+        points_count = len(points)
+
+        values = [p.value for p in points]
+        direction = "insufficient_data"
+        if points_count >= 4:
+            mid = points_count // 2
+            first = sum(values[:mid]) / mid
+            second = sum(values[mid:]) / (points_count - mid)
+            if second > first * 1.15:
+                direction = "rising"
+            elif second < first * 0.85:
+                direction = "falling"
+            else:
+                direction = "stable"
+
+        geo_label = geo or "Worldwide"
+        time_range = "Past 12 months"
         snippet = (
-            f"Google Trends query '{item.query}' measured an average relative search volume "
-            f"index of {avg_val}/100 across {points_count} chronological observations."
+            f"SEARCH INTEREST for '{item.query}' ({geo_label}, {time_range}): average relative "
+            f"index {avg_val}/100, momentum {direction}, across {points_count} observations. "
+            f"Reflects public attention only, not job availability."
         )
+
+        raw = item.model_dump()
+        raw.update({
+            "interest_label": "SEARCH INTEREST",
+            "geo": geo_label,
+            "time_range": time_range,
+            "trend_direction": direction,
+            "peak_interest": max(values) if values else None,
+        })
 
         return NormalizedEvidence(
             id=str(uuid.uuid4()),
             analysis_id=analysis_id,
             search_id=search_id,
-            title=f"Google Trends Search Demand Index: {item.query}",
+            title=f"Search Interest (Google Trends): {item.query}",
             url=None,  # Trends has no direct single page URL
             source="Google Trends",
             source_type="trend",
@@ -182,7 +209,7 @@ class EvidenceEngine:
             location=geo,
             published_at=datetime.now(timezone.utc),  # Trends represents current aggregate
             raw_engine="google_trends",
-            raw_data=item.model_dump(),
+            raw_data=raw,
         )
 
     @staticmethod

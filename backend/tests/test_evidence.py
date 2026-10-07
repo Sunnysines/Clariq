@@ -95,7 +95,7 @@ def test_normalize_trends_item():
 
     norm = engine.normalize_trends_item(item, analysis_id="test-an-1", geo="IN")
     assert norm.source_type == "trend"
-    assert "Google Trends Search Demand Index" in norm.title
+    assert "Search Interest" in norm.title
     assert "84.5/100" in norm.snippet
     assert norm.url is None  # no fabrication of URL
 

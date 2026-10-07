@@ -18,6 +18,7 @@ import SignalCard from '../components/SignalCard';
 import ContradictionCard from '../components/ContradictionCard';
 import ActionLayer from '../components/ActionLayer';
 import WhyExplanationModal from '../components/WhyExplanationModal';
+import TrendPanel from '../components/TrendPanel';
 import type { SignalItem } from '../types';
 
 export default function DashboardPage() {
@@ -320,6 +321,8 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <TrendPanel evidence={evidence?.items || []} />
 
       {/* Conflicting Signals & Decision Indicators Grid */}
       <div className="grid gap-8 lg:grid-cols-2">

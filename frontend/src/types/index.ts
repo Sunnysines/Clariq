@@ -82,6 +82,18 @@ export interface EvidenceItem {
   freshness_score: number | null;
   reliability_score: number | null;
   evidence_strength: number | null;
+  trend_data?: TrendData | null;
+}
+
+export interface TrendData {
+  query: string;
+  average_interest: number | null;
+  interest_label: string;
+  geo: string;
+  time_range: string;
+  trend_direction: 'rising' | 'falling' | 'stable' | 'insufficient_data';
+  peak_interest: number | null;
+  timeline_data: Array<{ date: string; value: number }>;
 }
 
 export interface EvidenceListResponse {

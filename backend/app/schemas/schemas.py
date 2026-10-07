@@ -74,6 +74,7 @@ class EvidenceItem(BaseModel):
     freshness_score: Optional[float] = None
     reliability_score: Optional[float] = None
     evidence_strength: Optional[float] = None
+    trend_data: Optional[dict] = None  # SEARCH INTEREST timeline (trend evidence only)
 
 
 class EvidenceListResponse(BaseModel):

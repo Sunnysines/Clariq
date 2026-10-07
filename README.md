@@ -128,6 +128,7 @@ LOG_LEVEL=INFO
 CORS_ORIGINS=http://localhost:5173
 MAX_RETRIES=2
 REQUEST_TIMEOUT=15
+CACHE_TTL=3600
 ```
 
 ---
@@ -155,3 +156,24 @@ npm install
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
+
+---
+
+## 📈 Search Trend Intelligence
+
+Clariq uses **Google Trends via SerpApi** to measure *popularity, search momentum, comparative interest and temporal change*.
+
+- Always labelled **SEARCH INTEREST** — relative public attention, **never** treated as proof of hiring demand.
+- One signal among several evidence channels (jobs, news, web, local).
+- Normalized into the shared evidence model (`source_type = "trend"`) with geography, time range and direction (rising / falling / stable).
+- The dashboard shows a **Search Momentum** chart (`TrendPanel`) with geo and time range.
+- All SerpApi responses are cached in-memory (`CACHE_TTL`, default 1h) keyed by engine + query + location + params, so repeated questions cost no extra API calls.
+
+**See it:** set `SERPAPI_API_KEY`, start backend + frontend, ask e.g. *"Which city is best for an AI engineer career in India?"*, open the dashboard and scroll to **Search Momentum**. Re-run the same question: logs show `cache_hit`.
+
+> Screenshots are not committed yet — run the app with your own key and capture them into `docs/screenshots/`.
+
+### Tests
+```bash
+cd backend && pytest
+```

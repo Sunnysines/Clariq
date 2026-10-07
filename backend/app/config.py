@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     MAX_RETRIES: int = 2
     REQUEST_TIMEOUT: int = 15
 
+    # --- Search Cache ---
+    CACHE_TTL: int = 3600          # seconds; 1 hour default
+    MAX_QUERIES: int = 50          # max total SerpApi calls per analysis
+    MAX_RESULTS_PER_QUERY: int = 10  # default results per engine call
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

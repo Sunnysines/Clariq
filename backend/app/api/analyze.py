@@ -298,6 +298,11 @@ async def get_analysis_evidence(
             freshness_score=e.freshness_score,
             reliability_score=e.reliability_score,
             evidence_strength=e.evidence_strength,
+            trend_data=(
+                {k: v for k, v in (e.raw_data or {}).items() if k != "raw_data"}
+                if e.source_type == "trend" and isinstance(e.raw_data, dict)
+                else None
+            ),
         )
         for e in items
     ]
