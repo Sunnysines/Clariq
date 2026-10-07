@@ -24,6 +24,7 @@ from app.schemas.schemas import (
     SignalItem,
 )
 from app.services.career_engine import CareerEngine
+from app.services.company_engine import CompanyEngine
 from app.services.serpapi.orchestrator import SearchOrchestrator
 
 logger = logging.getLogger("clariq.api.analyze")
@@ -71,28 +72,45 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                         rec.current_stage = stage_name
                         await stage_db.commit()
 
-            career_engine = CareerEngine()
-            result = await career_engine.analyze(
-                question=question,
-                analysis_id=analysis_id,
-                on_stage_update=update_stage,
-            )
+            if intent == "company":
+                company_engine = CompanyEngine()
+                result = await company_engine.analyze(
+                    question=question,
+                    analysis_id=analysis_id,
+                    on_stage_update=update_stage,
+                )
+                top_item = result.companies[0] if result.companies else None
+                entities_list = result.companies
+                entity_type_label = "company"
+                entity_name_key = "company"
+            else:
+                career_engine = CareerEngine()
+                result = await career_engine.analyze(
+                    question=question,
+                    analysis_id=analysis_id,
+                    on_stage_update=update_stage,
+                )
+                top_item = result.cities[0] if result.cities else None
+                entities_list = result.cities
+                entity_type_label = "city"
+                entity_name_key = "city"
 
             # Store Searches and Evidence records in DB
-            for city_res in result.cities:
+            for item in entities_list:
+                item_name = getattr(item, entity_name_key)
                 # Store resolved Entity
                 db_entity = Entity(
                     analysis_id=analysis_id,
-                    name=city_res.city,
-                    normalized_name=city_res.city,
-                    type="city",
-                    mention_count=city_res.evidence_count,
-                    evidence_score=city_res.overall_score,
+                    name=item_name,
+                    normalized_name=item_name,
+                    type=entity_type_label,
+                    mention_count=item.evidence_count,
+                    evidence_score=item.overall_score,
                 )
                 db.add(db_entity)
 
                 # Store Signals
-                for sig in city_res.signals:
+                for sig in item.signals:
                     db_sig = Signal(
                         id=sig.id,
                         analysis_id=analysis_id,
@@ -107,7 +125,7 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
                     db.add(db_sig)
 
                 # Store Contradictions
-                for conflict in city_res.contradictions:
+                for conflict in item.contradictions:
                     db_conflict = Contradiction(
                         id=conflict.id,
                         analysis_id=analysis_id,
@@ -124,12 +142,12 @@ async def run_analysis_pipeline(analysis_id: str, question: str) -> None:
             # Re-fetch analysis to update final status and results
             res = await db.execute(select(Analysis).where(Analysis.id == analysis_id))
             analysis_rec = res.scalar_one_or_none()
-            if analysis_rec:
+            if analysis_rec and top_item:
                 analysis_rec.status = "completed"
                 analysis_rec.current_stage = "completed"
-                analysis_rec.overall_score = result.cities[0].overall_score
-                analysis_rec.confidence_score = result.cities[0].confidence
-                analysis_rec.confidence_level = result.cities[0].confidence_level
+                analysis_rec.overall_score = top_item.overall_score
+                analysis_rec.confidence_score = top_item.confidence
+                analysis_rec.confidence_level = top_item.confidence_level
                 analysis_rec.result_data = result.model_dump()
                 analysis_rec.completed_at = datetime.now(timezone.utc)
                 await db.commit()
