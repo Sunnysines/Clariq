@@ -16,6 +16,7 @@ import RecommendationCard from '../components/RecommendationCard';
 import ScoreCard from '../components/ScoreCard';
 import SignalCard from '../components/SignalCard';
 import ContradictionCard from '../components/ContradictionCard';
+import ActionLayer from '../components/ActionLayer';
 import WhyExplanationModal, { type WhyContribution } from '../components/WhyExplanationModal';
 import type { SignalItem } from '../types';
 
@@ -334,6 +335,14 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Action Layer */}
+      <ActionLayer
+        analysisId={id}
+        topEntity={topEntity}
+        topCompanies={['Google', 'Microsoft', 'Infosys']}
+        conflictCount={contradictions.length}
+      />
 
       {/* Why Explanation Modal */}
       <WhyExplanationModal
