@@ -9,7 +9,7 @@ import {
   Sparkles,
   AlertTriangle
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 import { useAnalysis } from '../hooks/useAnalysis';
 import RecommendationCard from '../components/RecommendationCard';
@@ -218,14 +218,14 @@ export default function DashboardPage() {
           </button>
           <Link
             to={`/evidence?id=${id}`}
-            className="flex items-center gap-1.5 rounded-xl border border-border bg-bg-card px-4 py-2 text-xs font-semibold text-text-secondary transition hover:border-accent hover:text-accent"
+            className="btn-ghost !px-4 !py-2 !text-xs"
           >
             <Layers size={15} />
             Evidence Explorer
           </Link>
           <Link
             to={`/compare?id=${id}`}
-            className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-white transition hover:bg-accent-hover"
+            className="btn-primary !px-4 !py-2 !text-xs"
           >
             <GitCompare size={15} />
             Compare Entities
@@ -302,21 +302,23 @@ export default function DashboardPage() {
 
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={comparisonChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a45" />
-              <XAxis dataKey="name" stroke="#a0a0b8" fontSize={12} />
-              <YAxis domain={[0, 100]} stroke="#a0a0b8" fontSize={12} />
+            <BarChart data={comparisonChartData} barGap={6}>
+              <CartesianGrid strokeDasharray="3 6" stroke="#26263f" vertical={false} />
+              <XAxis dataKey="name" stroke="#70708c" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis domain={[0, 100]} stroke="#70708c" fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip
+                cursor={{ fill: 'rgba(109,111,245,0.08)' }}
                 contentStyle={{
-                  backgroundColor: '#1a1a2e',
-                  borderColor: '#6366f1',
-                  borderRadius: 8,
+                  backgroundColor: '#13131f',
+                  borderColor: '#6d6ff5',
+                  borderRadius: 12,
                   fontSize: 12,
                 }}
               />
-              <Bar dataKey="Score" fill="#6366f1" radius={[4, 4, 0, 0]} name="Overall Score" />
-              <Bar dataKey="Metric2" fill="#22c55e" radius={[4, 4, 0, 0]} name={comparisonChartData[0]?.label2 || 'Metric 2'} />
-              <Bar dataKey="Metric3" fill="#f59e0b" radius={[4, 4, 0, 0]} name={comparisonChartData[0]?.label3 || 'Metric 3'} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="Score" fill="#6d6ff5" radius={[6, 6, 0, 0]} name="Overall Score" />
+              <Bar dataKey="Metric2" fill="#34d399" radius={[6, 6, 0, 0]} name={comparisonChartData[0]?.label2 || 'Metric 2'} />
+              <Bar dataKey="Metric3" fill="#fbbf24" radius={[6, 6, 0, 0]} name={comparisonChartData[0]?.label3 || 'Metric 3'} />
             </BarChart>
           </ResponsiveContainer>
         </div>

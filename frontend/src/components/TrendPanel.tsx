@@ -1,4 +1,4 @@
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import type { EvidenceItem, TrendData } from '../types';
 
@@ -71,23 +71,32 @@ export default function TrendPanel({ evidence }: TrendPanelProps) {
 
       <div className="h-56 w-full" role="img" aria-label={`Search interest over time for ${trends.map((t) => t.query).join(', ')}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a45" />
-            <XAxis dataKey="date" stroke="#a0a0b8" fontSize={10} minTickGap={40} />
-            <YAxis domain={[0, 100]} stroke="#a0a0b8" fontSize={11} />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a2e', borderColor: '#6366f1', borderRadius: 8, fontSize: 12 }} />
+          <AreaChart data={chartData}>
+            <defs>
+              {trends.map((t, i) => (
+                <linearGradient key={t.query} id={`trendFill${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={PALETTE[i % PALETTE.length]} stopOpacity={0.45} />
+                  <stop offset="100%" stopColor={PALETTE[i % PALETTE.length]} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="3 6" stroke="#26263f" vertical={false} />
+            <XAxis dataKey="date" stroke="#70708c" fontSize={10} minTickGap={50} tickLine={false} axisLine={false} />
+            <YAxis domain={[0, 100]} stroke="#70708c" fontSize={11} tickLine={false} axisLine={false} />
+            <Tooltip contentStyle={{ backgroundColor: '#13131f', borderColor: '#6d6ff5', borderRadius: 12, fontSize: 12 }} />
             {trends.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
             {trends.map((t, i) => (
-              <Line
+              <Area
                 key={t.query}
                 type="monotone"
                 dataKey={t.query}
                 stroke={PALETTE[i % PALETTE.length]}
-                strokeWidth={2}
+                strokeWidth={2.5}
+                fill={`url(#trendFill${i})`}
                 dot={false}
               />
             ))}
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 

@@ -171,7 +171,19 @@ Clariq uses **Google Trends via SerpApi** to measure *popularity, search momentu
 
 **See it:** set `SERPAPI_API_KEY`, start backend + frontend, ask e.g. *"Which city is best for an AI engineer career in India?"*, open the dashboard and scroll to **Search Momentum**. Re-run the same question: logs show `cache_hit`.
 
-> Screenshots are not committed yet — run the app with your own key and capture them into `docs/screenshots/`.
+## 🖼️ Screenshots
+
+| Landing | Decision Dashboard |
+|---|---|
+| ![Landing](docs/screenshots/landing.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+| Search Momentum (SEARCH INTEREST) | Evidence Explorer |
+|---|---|
+| ![Search Momentum](docs/screenshots/search-momentum.png) | ![Evidence Explorer](docs/screenshots/evidence-explorer.png) |
+
+| Pipeline & Modes | History |
+|---|---|
+| ![Landing sections](docs/screenshots/landing-sections.png) | ![History](docs/screenshots/history.png) |
 
 ### Tests
 ```bash
